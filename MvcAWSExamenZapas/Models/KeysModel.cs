@@ -2,6 +2,6 @@
 {
     public class KeysModel
     {
-        public string MySql { get; set; }
+        public string MySqlZapas { get; set; }
     }
 }

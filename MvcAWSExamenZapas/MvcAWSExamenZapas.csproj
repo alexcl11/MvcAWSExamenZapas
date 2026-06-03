@@ -7,6 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Helpers\ñ\**" />
+    <Content Remove="Helpers\ñ\**" />
+    <EmbeddedResource Remove="Helpers\ñ\**" />
+    <None Remove="Helpers\ñ\**" />
+  </ItemGroup>
+
+  <ItemGroup>
 	  <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="4.0.4.3" />
 	  <PackageReference Include="AWSSDK.S3" Version="4.0.24" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.8" />
@@ -20,10 +27,6 @@
 	  <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="10.0.2" />
 	  <PackageReference Include="MySql.EntityFrameworkCore" Version="10.0.7" />
 	  <PackageReference Include="AWSSDK.SecretsManager" Version="4.0.4.24" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Helpers\ñ\" />
   </ItemGroup>
 
 </Project>

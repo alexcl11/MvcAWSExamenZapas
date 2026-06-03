@@ -4,40 +4,44 @@ using MvcAWSExamenZapas.Data;
 using MvcAWSExamenZapas.Helpers;
 using MvcAWSExamenZapas.Repositories;
 using MvcAWSExamenZapas.Services;
-using System.Text.Json;
+using MvcAWSExamenZapas.Models; // Namespace donde guardes KeysModel
+using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ============================================================
+// 1. RECUPERAR SECRETO Y DESERIALIZAR CON NEWTONSOFT (Tu estilo)
+// ============================================================
+string miSecret = await HelperSecretManager.GetSecretAsync();
 
-string secretJson = HelperSecretManager.GetSecretAsync().GetAwaiter().GetResult();
+// Mapeamos el string JSON completo con nuestro modelo KeysModel
+KeysModel model = JsonConvert.DeserializeObject<KeysModel>(miSecret);
 
-// Parseamos el JSON que devuelve AWS para extraer la clave exacta
-using (JsonDocument doc = JsonDocument.Parse(secretJson))
-{
-    JsonElement root = doc.RootElement;
+// Configuramos la base de datos usando la propiedad mapeada del modelo
+builder.Services.AddDbContext<ZapasContext>(options =>
+    options.UseMySQL(model.MySqlZapas));
 
-    string connectionString = root.GetProperty("MySQLZapas").GetString();
+// INYECTAMOS EL MODELO COMPLETO COMO SINGLETON (Igual que en tu ejemplo)
+// Esto te permitirá recibir "KeysModel" en cualquier controlador o servicio si lo necesitas
+builder.Services.AddSingleton<KeysModel>(x => model);
 
-    builder.Services.AddDbContext<ZapasContext>(options =>
-        options.UseMySQL(connectionString));
-}
-
-// Add services to the container.
+// ============================================================
+// 2. REGISTRO DEL RESTO DE SERVICIOS
+// ============================================================
 builder.Services.AddAWSService<IAmazonS3>();
 builder.Services.AddTransient<ServiceStorageS3>();
 builder.Services.AddTransient<RepositoryZapas>();
-builder.Services.AddDbContext<ZapasContext>(x => x.UseMySQL(builder.Configuration.GetConnectionString("MySQLZapatillas")));
-
 
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// ============================================================
+// 3. PIPELINE DE PETICIONES HTTP (MIDDLEWARES)
+// ============================================================
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
@@ -52,6 +56,5 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
-
 
 app.Run();
