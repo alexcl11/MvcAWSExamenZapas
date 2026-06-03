@@ -1,10 +1,26 @@
 using Amazon.S3;
 using Microsoft.EntityFrameworkCore;
 using MvcAWSExamenZapas.Data;
+using MvcAWSExamenZapas.Helpers;
 using MvcAWSExamenZapas.Repositories;
 using MvcAWSExamenZapas.Services;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+string secretJson = HelperSecretManager.GetSecretAsync().GetAwaiter().GetResult();
+
+// Parseamos el JSON que devuelve AWS para extraer la clave exacta
+using (JsonDocument doc = JsonDocument.Parse(secretJson))
+{
+    JsonElement root = doc.RootElement;
+
+    string connectionString = root.GetProperty("MySQLZapas").GetString();
+
+    builder.Services.AddDbContext<ZapasContext>(options =>
+        options.UseMySQL(connectionString));
+}
 
 // Add services to the container.
 builder.Services.AddAWSService<IAmazonS3>();
